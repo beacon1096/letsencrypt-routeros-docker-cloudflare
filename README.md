@@ -1,3 +1,18 @@
+So you can deploy certificates to ssh-compatible devices (like Mikrotik RouterOS devices) with openssh in docker!  
+```Dockerfile
+FROM certbot/dns-cloudflare:arm64v8-latest
+RUN apk add --no-cache bash openssh 
+```
+There's a great chance that I'm not building this image frequently so probably you should just build it locally,   
+and I only made a arm64 build as for now.  
+Checkout certbot's docs to get some ideas, especially if you want to deploy your certs & keys to other linux devices other than RouterOS by making another post-hook script    
+Check the dockerfile if you're looking into switching to another DNS provider plugin  
+Checkout https://github.com/gitpel/letsencrypt-routeros about deploying certs & keys to RouterOS devices  
+
+You'll still need to configure cron to renew your certs automatically  
+
+
+  
 # Let's Encrypt RouterOS / Mikrotik
 **Let's Encrypt certificates for RouterOS / Mikrotik**
 
@@ -17,18 +32,20 @@
 * Change **SSTP Server Settings** to use new certificate
 * Delete certificate and key files form RouterOS / Mikrotik storage
 
-### Installation on Ubuntu 16.04
+### Installation on Any Docker-Enabled System
+*Tested on Openwrt 21 Arm64*  
+
 *Similar way you can use on Debian/CentOS/AMI Linux/Arch/Others*
 
 Download the repo to your system
 ```sh
 sudo -s
 cd /opt
-git clone https://github.com/gitpel/letsencrypt-routeros
+git clone https://github.com/beacon1096/letsencrypt-routeros-docker-cloudflare
 ```
 Edit the settings file:
 ```sh
-vim /opt/letsencrypt-routeros/letsencrypt-routeros.settings
+vim /opt/letsencrypt-routeros-docker-cloudflare/scripts/letsencrypt-routeros.settings
 ```
 | Variable Name | Value | Description |
 | ------ | ------ | ------ |
@@ -41,20 +58,22 @@ vim /opt/letsencrypt-routeros/letsencrypt-routeros.settings
 
 Change permissions:
 ```sh
-chmod +x /opt/letsencrypt-routeros/letsencrypt-routeros.sh
+chmod +x /opt/letsencrypt-routeros-docker-cloudflare/scripts/letsencrypt-routeros.sh
 ```
-Generate DSA Key for RouterOS
+Generate RSA Key for RouterOS
 
-*Make sure to leave the passphrase blank (-N "")*
+*Make sure to leave the passphrase blank (-N "")*  
+
+*Or generate it interactively without this parameter*
 
 ```sh
-ssh-keygen -t dsa -f /opt/letsencrypt-routeros/id_dsa -N ""
+ssh-keygen -t rsa -f /opt/letsencrypt-routeros-docker-cloudflare/scripts/id_rsa -N ""
 ```
 
-Send Generated DSA Key to RouterOS / Mikrotik
+Send Generated RSA Key to RouterOS / Mikrotik
 ```sh
-source /opt/letsencrypt-routeros/letsencrypt-routeros.settings
-scp -P $ROUTEROS_SSH_PORT /opt/letsencrypt-routeros/id_dsa.pub "$ROUTEROS_USER"@"$ROUTEROS_HOST":"id_dsa.pub" 
+source /opt/letsencrypt-routeros-docker-cloudflare/scripts/letsencrypt-routeros.settings
+scp -P $ROUTEROS_SSH_PORT /opt/letsencrypt-routeros-docker-cloudflare/scripts/id_rsa.pub "$ROUTEROS_USER"@"$ROUTEROS_HOST":"id_rsa.pub" 
 ```
 
 ### Setup RouterOS / Mikrotik side
@@ -67,31 +86,33 @@ scp -P $ROUTEROS_SSH_PORT /opt/letsencrypt-routeros/id_dsa.pub "$ROUTEROS_USER"@
 :put "Enable SSH"
 /ip service enable ssh
 
-:put "Add to the user DSA Public Key"
-/user ssh-keys import user=admin public-key-file=id_dsa.pub
+:put "Add to the user RSA Public Key"
+/user ssh-keys import user=admin public-key-file=id_rsa.pub
 ```
 
 ### CertBot Let's Encrypt
-Install CertBot using official manuals https://certbot.eff.org/#ubuntuxenial-other
+Change *-d {DOMAIN}* to your domain. Wildcard will work as well
 
-*for Ubuntu 16.04*
-```sh
-apt update
-apt install software-properties-common -y
-add-apt-repository ppa:certbot/certbot
-apt update
-apt install certbot -y
-```
-
-***In the first time, you will need to create Certificates manually and put domain TXT record***
+Select the correct tag according to your architecture, for arm64 the one I'm using is arm64v8:20210817
 
 *follow CertBot instructions*
+
+and run the setup script
 ```sh
-source /opt/letsencrypt-routeros/letsencrypt-routeros.settings
-certbot certonly --preferred-challenges=dns --manual -d $DOMAIN --manual-public-ip-logging-ok
+/opt/letsencrypt-routeros-docker-cloudflare/docker-cert.sh
+```
+You'll need to manually confirm the *authenticity of host* in your first run.
+
+To renew, checkout https://certbot.eff.org/docs/using.html#automated-renewals and replace 
+```sh
+certbot renew -q
+```
+with
+```sh
+/opt/letsencrypt-routeros-docker-cloudflare/docker-renew.sh
 ```
 
-### Usage of the script
+### Usage of the RouterOS script
 *To use settings form the settings file:*
 ```sh
 ./opt/letsencrypt-routeros/letsencrypt-routeros.sh
