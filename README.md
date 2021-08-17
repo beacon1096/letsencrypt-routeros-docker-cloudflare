@@ -91,13 +91,16 @@ scp -P $ROUTEROS_SSH_PORT /opt/letsencrypt-routeros-docker-cloudflare/scripts/id
 ```
 
 ### CertBot Let's Encrypt
-Change *-d {DOMAIN}* to your domain. Wildcard will work as well
+Open docker-cert.sh and have a check  
+
+Change *\*.{DOMAIN}* to your domain. Wildcard will work as well
 
 Select the correct tag according to your architecture, for arm64 the one I'm using is arm64v8:20210817
 
+run the setup script  
+
 *follow CertBot instructions*
 
-and run the setup script
 ```sh
 /opt/letsencrypt-routeros-docker-cloudflare/docker-cert.sh
 ```
