@@ -1,8 +1,6 @@
 So you can deploy certificates to ssh-compatible devices (like Mikrotik RouterOS devices) with openssh in docker!  
-```Dockerfile
-FROM certbot/dns-cloudflare:arm64v8-latest
-RUN apk add --no-cache bash openssh 
-```
+https://hub.docker.com/r/beacon1096/certbot-cloudflare-bash-openssh
+
 There's a great chance that I'm not building this image frequently so probably you should just build it locally,   
 
 **arm64 devices** should choose the arm64-20210817 or newer tags  
