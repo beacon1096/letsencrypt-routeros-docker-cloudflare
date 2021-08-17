@@ -4,7 +4,9 @@ FROM certbot/dns-cloudflare:arm64v8-latest
 RUN apk add --no-cache bash openssh 
 ```
 There's a great chance that I'm not building this image frequently so probably you should just build it locally,   
-and I only made a arm64 build as for now.  
+
+**arm64 devices** should choose the arm64-20210817 or newer tags  
+
 Checkout certbot's docs to get some ideas, especially if you want to deploy your certs & keys to other linux devices other than RouterOS by making another post-hook script    
 Check the dockerfile if you're looking into switching to another DNS provider plugin  
 Checkout https://github.com/gitpel/letsencrypt-routeros about deploying certs & keys to RouterOS devices  
