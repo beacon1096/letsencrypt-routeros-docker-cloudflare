@@ -1,3 +1,9 @@
+## Update:
+With the release of ROS 7 rc, you can now run docker containers on Mikrotik devices.
+A seperate linux device may no longer be needed anymore.
+
+-------------------------
+
 So you can deploy certificates to ssh-compatible devices (like Mikrotik RouterOS devices) with openssh in docker!  
 https://hub.docker.com/r/beacon1096/certbot-cloudflare-bash-openssh
 
